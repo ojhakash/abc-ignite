@@ -102,6 +102,23 @@ npm run test:debug
 
 Jest is configured for ES modules. If you add new test files, place them in the appropriate subdirectory under `tests/`.
 
+## Running Tests in Docker
+
+1. Start the test Postgres database:
+   ```bash
+   docker-compose up -d postgres_test
+   ```
+2. Run the tests from your project root:
+   ```bash
+   npm test
+   ```
+   This will use the test database (`abcignite_test`) on port 5433 as configured in your `package.json` scripts.
+
+3. (Optional) To stop and remove the test database container:
+   ```bash
+   docker-compose down
+   ```
+
 ## Notes
 - No authentication required
 - Data is not persisted between server restarts

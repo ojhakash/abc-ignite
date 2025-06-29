@@ -5,8 +5,8 @@
   "scripts": {
     "start": "node index.js",
     "dev": "nodemon index.js",
-    "test": "node --experimental-vm-modules node_modules/.bin/jest",
-    "test:debug": "node --inspect-brk --experimental-vm-modules node_modules/.bin/jest"
+    "test": "DB_HOST=localhost DB_PORT=5433 DB_NAME=abcignite_test DB_USER=postgres DB_PASS=postgres node --experimental-vm-modules node_modules/.bin/jest",
+    "test:debug": "DB_HOST=localhost DB_PORT=5433 DB_NAME=abcignite_test DB_USER=postgres DB_PASS=postgres node --inspect-brk --experimental-vm-modules node_modules/.bin/jest"
   },
   "keywords": [],
   "author": "",
@@ -17,6 +17,7 @@
     "dotenv": "^16.6.0",
     "express": "^5.1.0",
     "joi": "^17.13.3",
+    "pg": "^8.16.3",
     "sequelize": "^6.37.7",
     "swagger-jsdoc": "^6.2.8",
     "swagger-ui-express": "^5.0.1"

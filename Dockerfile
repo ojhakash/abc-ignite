@@ -9,4 +9,5 @@ RUN npm install
 COPY . .
 
 EXPOSE 3000
-CMD ["npm", "start"] 
+# Use nodemon for live reload in development
+CMD ["npm", "run", "dev"] 

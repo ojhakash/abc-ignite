@@ -1,16 +1,22 @@
 import request from 'supertest';
 import app from '../../src/app.js';
-import { classes, bookings } from '../../src/repository/storage.js';
+import Class from '../../src/models/class.model.js';
+import Booking from '../../src/models/booking.model.js';
+
+// Helper to clear tables
+const clearAll = async () => {
+  await Booking.destroy({ where: {} });
+  await Class.destroy({ where: {} });
+};
 
 describe('Bookings API', () => {
-  beforeEach(() => {
-    classes.length = 0;
-    bookings.length = 0;
+  beforeEach(async () => {
+    await clearAll();
   });
 
   it('should book a class for a member', async () => {
     // First, create a class
-    await request(app)
+    const res1 = await request(app)
       .post('/api/classes')
       .send({
         name: 'Yoga',
@@ -20,6 +26,7 @@ describe('Bookings API', () => {
         duration: 60,
         capacity: 2
       });
+      
     // Book the class
     const res = await request(app)
       .post('/api/bookings')
@@ -28,10 +35,12 @@ describe('Bookings API', () => {
         className: 'Yoga',
         participationDate: '2099-01-01'
       });
+    
     expect(res.statusCode).toBe(200);
     expect(res.body).toHaveProperty('message', 'Booking successful');
     expect(res.body.booking).toHaveProperty('memberName', 'Alice');
-    expect(bookings.length).toBe(1);
+    const dbBookings = await Booking.findAll({ where: { memberName: 'Alice' } });
+    expect(dbBookings.length).toBe(1);
   });
 
   it('should fail to book a non-existent class', async () => {

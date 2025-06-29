@@ -1,10 +1,15 @@
 import request from 'supertest';
 import app from '../../src/app.js';
-import { classes } from '../../src/repository/storage.js';
+import Class from '../../src/models/class.model.js';
+
+// Helper to clear the Class table
+const clearClasses = async () => {
+  await Class.destroy({ where: {} });
+};
 
 describe('Classes API', () => {
-  beforeEach(() => {
-    classes.length = 0; // Reset in-memory storage
+  beforeEach(async () => {
+    await clearClasses();
   });
 
   it('should create classes for a date range', async () => {
@@ -21,7 +26,8 @@ describe('Classes API', () => {
     expect(res.statusCode).toBe(200);
     expect(res.body).toHaveProperty('message', 'Classes created');
     expect(res.body).toHaveProperty('count', 3);
-    expect(classes.length).toBe(3);
+    const dbClasses = await Class.findAll({ where: { name: 'Yoga' } });
+    expect(dbClasses.length).toBe(3);
   });
 
   it('should fail with validation error', async () => {

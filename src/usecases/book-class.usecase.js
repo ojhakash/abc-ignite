@@ -1,7 +1,8 @@
 import BaseUsecase from './base.usecase.js';
 import Joi from 'joi';
-import { classes, bookings } from '../repository/storage.js';
-import { compareDate, isDateInFuture } from '../utils/date.js';
+import Class from '../models/class.model.js';
+import Booking from '../models/booking.model.js';
+import { isDateInFuture } from '../utils/date.js';
 
 const bookingSchema = Joi.object({
   memberName: Joi.string().required(),
@@ -23,26 +24,28 @@ export default class BookClassUsecase extends BaseUsecase {
     if (!isDateInFuture(participationDate)) {
       throw new Error('Participation date must be in the future.');
     }
-    // Find the class instance
-    const classInstance = classes.find(
-      c => c.name === className && compareDate(c.date, participationDate)
-    );
+    // Find the class instance in DB
+    const classInstance = await Class.findOne({
+      where: {
+        name: className,
+        date: participationDate
+      }
+    });
     if (!classInstance) {
       throw new Error('Class not found for the given date.');
     }
     if (classInstance.bookings >= classInstance.capacity) {
       throw new Error('Class is at full capacity.');
     }
-    // Book
+    // Book: increment bookings and create Booking record
     classInstance.bookings += 1;
-    const booking = {
-      id: bookings.length + 1,
+    await classInstance.save();
+    const booking = await Booking.create({
       memberName,
       className,
       participationDate,
       classStartTime: classInstance.startTime
-    };
-    bookings.push(booking);
+    });
     return { message: 'Booking successful', booking };
   }
 } 

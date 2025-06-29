@@ -1,11 +1,42 @@
-version: '3.8'
 services:
   app:
     build: .
     ports:
       - "3000:3000"
-    env_file:
-      - .env
     volumes:
       - .:/app
-    command: npm start 
+    command: npm start
+    environment:
+      - NODE_ENV=development
+      - DB_HOST=postgres
+      - DB_PORT=5432
+      - DB_NAME=abcignite
+      - DB_USER=postgres
+      - DB_PASS=postgres
+    depends_on:
+      - postgres
+  postgres:
+    image: postgres:15
+    restart: always
+    environment:
+      POSTGRES_DB: abcignite
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+  postgres_test:
+    image: postgres:15
+    restart: always
+    environment:
+      POSTGRES_DB: abcignite_test
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5433:5432"
+    volumes:
+      - pgdata_test:/var/lib/postgresql/data
+volumes:
+  pgdata:
+  pgdata_test: 

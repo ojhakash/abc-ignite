@@ -1,5 +1,6 @@
 import BaseUsecase from './base.usecase.js';
-import { bookings } from '../repository/storage.js';
+import Booking from '../models/booking.model.js';
+import { Op } from 'sequelize';
 
 export default class SearchBookingsUsecase extends BaseUsecase {
   static create(request, response) {
@@ -8,17 +9,18 @@ export default class SearchBookingsUsecase extends BaseUsecase {
 
   async execute() {
     const { member, startDate, endDate } = this.request.query;
-    let results = bookings;
+    const where = {};
     if (member) {
-      results = results.filter(b => b.memberName === member);
+      where.memberName = member;
     }
     if (startDate && endDate) {
-      results = results.filter(b => b.participationDate >= startDate && b.participationDate <= endDate);
+      where.participationDate = { [Op.between]: [startDate, endDate] };
     } else if (startDate) {
-      results = results.filter(b => b.participationDate >= startDate);
+      where.participationDate = { [Op.gte]: startDate };
     } else if (endDate) {
-      results = results.filter(b => b.participationDate <= endDate);
+      where.participationDate = { [Op.lte]: endDate };
     }
+    const results = await Booking.findAll({ where });
     return results.map(b => ({
       className: b.className,
       classStartTime: b.classStartTime,

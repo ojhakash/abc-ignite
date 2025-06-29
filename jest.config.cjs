@@ -7,4 +7,5 @@ module.exports = {
     '**/?(*.)+(spec|test).js',
     '**/?(*.)+(spec|test).mjs',
   ],
+  setupFilesAfterEnv: ['<rootDir>/tests/setup.mjs'],
 }; 

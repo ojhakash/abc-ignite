@@ -1,7 +1,8 @@
 import BaseUsecase from './base.usecase.js';
 import Joi from 'joi';
-import { classes } from '../repository/storage.js';
+import Class from '../models/class.model.js';
 import { isDateInFuture, getDatesBetween, compareDate } from '../utils/date.js';
+import { Op } from 'sequelize';
 
 const classSchema = Joi.object({
   name: Joi.string().required(),
@@ -28,26 +29,27 @@ export default class CreateClassUsecase extends BaseUsecase {
     }
     // Generate class instances for each day
     const classDates = getDatesBetween(startDate, endDate);
-    const classId = classes.length + 1;
-    for (const date of classDates) {
-      const exists = classes.some(
-        c => c.name === name && compareDate(c.date, date.toISOString().split('T')[0])
-      );
-      if (exists) {
-        throw new Error(`Class with name '${name}' already exists on date ${date.toISOString().split('T')[0]}`);
-      }
-    }
-    classDates.forEach(date => {
-      classes.push({
-        id: `${classId}-${date.toISOString().split('T')[0]}`,
+    // Check for existing classes in DB
+    const dateStrings = classDates.map(date => date.toISOString().split('T')[0]);
+    const existing = await Class.findAll({
+      where: {
         name,
-        date: date.toISOString().split('T')[0],
-        startTime,
-        duration,
-        capacity,
-        bookings: 0
-      });
+        date: { [Op.in]: dateStrings }
+      }
     });
+    if (existing.length > 0) {
+      throw new Error(`Class with name '${name}' already exists on one or more selected dates.`);
+    }
+    // Create classes
+    const toCreate = classDates.map(date => ({
+      name,
+      date: date.toISOString().split('T')[0],
+      startTime,
+      duration,
+      capacity,
+      bookings: 0
+    }));
+    await Class.bulkCreate(toCreate);
     return { message: 'Classes created', count: classDates.length };
   }
 } 
